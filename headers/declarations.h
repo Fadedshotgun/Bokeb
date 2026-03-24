@@ -1,40 +1,48 @@
 struct token;
 
-// scan
+// scan.c
 int scanNextToken(struct token *t);
 
-// AST
+// ast.c
 struct ASTnode *makeASTnode(int operation, struct ASTnode *left, struct ASTnode *right, int intvalue);
-struct ASTnode *makeASTintegerNode(int operation, int value);
+struct ASTnode *makeASTleafNode(int operation, int value);
 struct ASTnode *makeASTunary(int operation, struct ASTnode *left, int value);
 
-// expression
+// expression.c
 struct ASTnode *binaryExpression(int ptp);
 
-// statement
-
+// statement.c
 void statements(void);
 
-// generator / interpreter
-int interpretAST(struct ASTnode *node);
-
-int generateAssemblyFromAST(struct ASTnode *node);
-
+// generator.c / interpreter.c
+int generateAssemblyFromAST(struct ASTnode *node, int reg);
 void generateCode(struct ASTnode *node);
 
-//code generator
+// codegenerator.c
 void freeall_registers(void);
 void cgpreamble();
+void cgmain();
 void cgpostamble();
-int cgload(int value);
+int cgloadint(int value);
 int cgadd(int r1, int r2);
 int cgsub(int r1, int r2);
 int cgmul(int r1, int r2);
 int cgdiv(int r1, int r2);
 void cgprintint(int r);
+int cgloadglobal(wchar_t *name);
+int cgstoreglobal(int r, wchar_t *name);
+void cgglobalsymbol(wchar_t *name);
 
-// utils
+//symbol.c
+int findGlobalSymbol(wchar_t *name);
+int addGlobalSymbol(wchar_t *name);
+
+// utils.c
 void match(int t, char *what);
 void semi(void);
 void leftParem(void);
 void rightParem(void);
+void identifier(void);
+
+// declarations.c
+void intDeclaration(void);

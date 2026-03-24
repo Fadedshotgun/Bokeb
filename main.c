@@ -13,10 +13,14 @@ FILE *InFile;
 FILE *Outfile;
 struct token Token;
 wchar_t Text[TEXTLEN + 1];
+struct symbolTable globalSymbols[NUMBER_OF_SYMBOLS];
 
 wchar_t *tokenStrings[] = { L"+", L"-", L"*", L"/", L"Integer Literal" };
 
 void main(int argc, char *argv[]) {
+    setlocale(LC_ALL, "");
+
+    // Make sure we have an input file path
     if (argc != 2) {
         printf("Please provide an input file\n");
         exit(1);
@@ -25,7 +29,7 @@ void main(int argc, char *argv[]) {
     Line = 1;
     Putback = '\n';
 
-    // gotta convert to wide string cuz wide strings r stupid
+    // Gotta convert to wide string cuz wide strings r stupid
     size_t len = strlen(argv[1]) + 1;
     wchar_t *wfilename = malloc(len * sizeof(wchar_t));
     mbstowcs(wfilename, argv[1], len);

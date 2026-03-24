@@ -7,6 +7,33 @@
 static int freereg[4];
 static char *reglist[4]= { "%r8", "%r9", "%r10", "%r11" };
 
+// i did not write this function lol
+static char* wide_to_utf8(wchar_t *wstr) {
+  static char utf8buf[TEXTLEN * 4 + 1];
+  char *out = utf8buf;
+  
+  for (; *wstr; wstr++) {
+    unsigned int c = *wstr;
+    if (c < 0x80) {
+      *out++ = c;
+    } else if (c < 0x800) {
+      *out++ = 0xC0 | (c >> 6);
+      *out++ = 0x80 | (c & 0x3F);
+    } else if (c < 0x10000) {
+      *out++ = 0xE0 | (c >> 12);
+      *out++ = 0x80 | ((c >> 6) & 0x3F);
+      *out++ = 0x80 | (c & 0x3F);
+    } else {
+      *out++ = 0xF0 | (c >> 18);
+      *out++ = 0x80 | ((c >> 12) & 0x3F);
+      *out++ = 0x80 | ((c >> 6) & 0x3F);
+      *out++ = 0x80 | (c & 0x3F);
+    }
+  }
+  *out = '\0';
+  return utf8buf;
+}
+
 void freeall_registers(void)
 {
   freereg[0]= freereg[1]= freereg[2]= freereg[3]= 1;
@@ -44,7 +71,6 @@ void cgpreamble()
 	"\tpushq\t%rbp\n"
 	"\tmovq\t%rsp, %rbp\n"
   "\tsubq\t$32, %rsp\n"
-	"\tsubq\t$16, %rsp\n"
 	"\tmovl\t%ecx, -4(%rbp)\n"
 	"\tmovl\t-4(%rbp), %eax\n"
 	"\tmovl\t%eax, %edx\n"
@@ -66,13 +92,13 @@ void cgpreamble()
 void cgpostamble()
 {
   fputs(
-	"\tmovl	$0, %eax\n"
-	"\tpopq	%rbp\n"
+	"\txorl\t%eax, %eax\n"
+  "\tleave\n"
 	"\tret\n",
   Outfile);
 }
 
-int cgload(int value) {
+int cgloadint(int value) {
   int r= alloc_register();
 
   fprintf(Outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
@@ -110,4 +136,20 @@ void cgprintint(int r) {
   fprintf(Outfile, "\tmovq\t%s, %%rcx\n", reglist[r]);
   fprintf(Outfile, "\tcall\tprintint\n");
   free_register(r);
+}
+
+int cgloadglobal(wchar_t *name) {
+  int r = alloc_register();
+  fprintf(Outfile, "\tmovq\t%s(%%rip), %s\n", wide_to_utf8(name), reglist[r]);
+  return r;
+}
+
+int cgstoreglobal(int r, wchar_t *name) {
+  fprintf(Outfile, "\tmovq\t%s, %s(%%rip)\n", reglist[r], wide_to_utf8(name));
+  free_register(r);
+  return r;
+}
+
+void cgglobalsymbol(wchar_t *name) {
+  fprintf(Outfile, "\t.comm\t%s, 8\n", wide_to_utf8(name));
 }

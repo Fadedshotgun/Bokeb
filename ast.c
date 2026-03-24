@@ -6,15 +6,15 @@ struct ASTnode *makeASTnode(int operation, struct ASTnode *left, struct ASTnode 
     newNode->operation = operation;
     newNode->left = left;
     newNode->right = right;
-    newNode->intvalue = intvalue;
+    newNode->v.intvalue = intvalue;
 
     return newNode;
 }
 
-struct ASTnode *makeASTintegerNode(int operation, int value) {
-    return makeASTnode(operation, NULL, NULL, value); // a simple integer leaf
+struct ASTnode *makeASTleafNode(int operation, int value) {
+    return makeASTnode(operation, NULL, NULL, value); // A simple leaf node, no children
 }  
 
 struct ASTnode *makeASTunary(int operation, struct ASTnode *left, int value) {
-    return makeASTnode(operation, left, NULL, value); //only one child
+    return makeASTnode(operation, left, NULL, value); // Only 1 child node
 }

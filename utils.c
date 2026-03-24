@@ -2,7 +2,7 @@
 #include "headers/data.h"
 #include "headers/declarations.h"
 
-// makes sure next token is what we expect
+// Makes sure next token is what we expect
 void match(int t, char *what) {
   if (Token.token == t) {
     scanNextToken(&Token);
@@ -12,7 +12,7 @@ void match(int t, char *what) {
   }
 }
 
-// just shorthand functions for matching tokens
+// Just shorthand functions for matching tokens
 void semi(void) {
   match(TOKEN_SEMICOLON, ";");
 }
@@ -23,4 +23,8 @@ void leftParem(void) {
 
 void rightParem(void) {
   match(TOKEN_RIGHTPAREM, ")");
+}
+
+void identifier(void) {
+  match(TOKEN_IDENTIFIER, "identifier");
 }

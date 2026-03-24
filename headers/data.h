@@ -8,3 +8,4 @@ extern FILE *InFile;
 extern FILE	*Outfile;
 extern struct token Token;
 extern wchar_t Text[TEXTLEN + 1];
+extern struct symbolTable globalSymbols[NUMBER_OF_SYMBOLS]; // Global Variables

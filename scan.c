@@ -18,7 +18,7 @@ static int next(void) {
     return character;
 }
 
-// Put back a character to be read
+// Put back a character to be read next
 static void putback(wint_t character) {
     Putback = character; 
 }
@@ -34,6 +34,7 @@ static wint_t skipToNextCharacter(void) {
     return (character);
 }
 
+// Finds what position a character is in a string
 static int charPos(wchar_t *s, wint_t c) {
   wchar_t *p;
 
@@ -41,6 +42,7 @@ static int charPos(wchar_t *s, wint_t c) {
   return (p ? p - s : -1);
 }
 
+// Scans an integer literal until we hit a non-integer character
 static int scanInt(wint_t character) {
     int nextNumber, value = 0;
 
@@ -57,12 +59,11 @@ static int scanInt(wint_t character) {
     return value;
 }
 
-//reads alphanumeric characters and underscores until it hits a non-alphanumeric
+// Reads alphanumeric characters and underscores until it hits a non-alphanumeric
 static int scanIdentifier(wint_t character, wchar_t*buffer, int limit) {
     int i = 0;
 
     while (iswalpha(character) || iswdigit(character) || L'_' == character) {
-        //printf("%c", character);
         if (limit - 1 == i) {
             fprintf(stderr, "Identifier too long on line %d\n", Line);
             exit(1);
@@ -77,12 +78,17 @@ static int scanIdentifier(wint_t character, wchar_t*buffer, int limit) {
     return i;
 }
 
+// Finding keywords, based off first character 
 static int findKeyword(wchar_t *string) {
     switch (*string) {
         case L'д':
             if (wcscmp(string, L"друкаваць") == 0) {
                 return TOKEN_PRINT;
-                printf("A");
+            }
+            break;
+        case L'ц':
+            if (wcscmp(string, L"цэлы") == 0) {
+                return TOKEN_INT;
             }
             break;
     }
@@ -95,10 +101,11 @@ int scanNextToken(struct token *t) {
 
     character = skipToNextCharacter();
 
+    // Tokens 
     switch (character) {
         case WEOF:
             t->token = TOKEN_EOF;
-            return 0; // NO MORE TOKENS :)
+            return 0; 
         case L'+':
             t->token = TOKEN_PLUS;
             break;
@@ -120,13 +127,15 @@ int scanNextToken(struct token *t) {
         case L';':
             t->token = TOKEN_SEMICOLON;
             break;
+        case L'=':
+            t->token = TOKEN_EQUALS;
+            break;
         default:
             if (iswdigit(character)) {
                 t->intvalue = scanInt(character);
                 t->token = TOKEN_INTLIT;
                 break;
             } else if (iswalpha(character) || L'_' == character) {
-                wprintf(L"Scanning identifier starting with %lc on line %d\n", character, Line);
                 scanIdentifier(character, Text, TEXTLEN);
 
                 if (tokenType = findKeyword(Text)) {
@@ -134,9 +143,8 @@ int scanNextToken(struct token *t) {
                     break;
                 } 
                     
-                wprintf(L"Unknown identifierrrrr %ls on line %d\n", Text, Line);
-                exit(1);
-
+                // If not a keyword, its an identifier
+                t->token = TOKEN_IDENTIFIER;
                 break;
             }
 

@@ -2,6 +2,7 @@
 #include "headers/data.h"
 #include "headers/declarations.h"
 
+// Swap between enums for math operations
 int tokenToASToperation(int token) {
     switch (token) {
         case TOKEN_PLUS: return AST_ADD;
@@ -17,35 +18,45 @@ int tokenToASToperation(int token) {
 
 static struct ASTnode *primary(void) {
     struct ASTnode *node;
+    int id;
 
-    // make ast leaf node for integer literal token
+    // Make ast leaf node for integer literal token or identifier token
     switch (Token.token)
     {
         case TOKEN_INTLIT:
-            node = makeASTintegerNode(AST_INTLIT, Token.intvalue);
-            scanNextToken(&Token);
-            return node;
+            node = makeASTleafNode(AST_INTLIT, Token.intvalue);
+            break;
+        case TOKEN_IDENTIFIER:
+            id = findGlobalSymbol(Text);
+            if (id == -1) {printf("Undeclared variable %s on line %d\n", Text, Line);}
+
+            node = makeASTleafNode(AST_IDENTIFIER, id);
+            break;
         default:
             printf("syntax error on line %d\n", Line);
             exit(1);
     }
+
+    scanNextToken(&Token);
+    return node;
 }
 
 static int precedenceArray[] = { 0, 10, 10, 20, 20,   0 };
 //                              EOF  +   -   *   /  INTLIT
 
+// Detect if we have an invalid operator, if not return its precedence
 static int operatorPrecedence(int tokenType) {
     int precedence = precedenceArray[tokenType];
     if (precedence == 0) {
-        printf("Syntax errorrr on line %d\n", Line);
+        printf("Syntax error on line %d\n", Line);
         exit(1);
     }
 
     return precedence;
 }
 
-// pratt parsing, makes my head hurt tbh
-// more info at: https://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/
+// Pratt parsing, makes my head hurt tbh
+// More info at: https://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/
 struct ASTnode *binaryExpression(int ptp) {
     struct ASTnode *left, *right;
     int tokenType;
